@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    url: jdbc:mysql://198.37.120.210:3306/gizmolk_springboot
+    username: gizmolk_support
+    password: BANK5155ks@1
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+      dialect: org.hibernate.dialect.MySQLDialect
+    show-sql: true

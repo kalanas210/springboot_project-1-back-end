@@ -10,6 +10,7 @@ import org.example.entity.UsersEntity;
 import org.example.repository.UsersRepository;
 import org.example.service.UserService;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,7 +23,8 @@ import java.util.Random;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final JavaMailSender mailSender;
-    public static final String SENDER_EMAIL = "taskinahned774@gmail.com";
+    @Value("${spring.mail.username}")
+    private String senderEmail;
     private final UsersRepository usersRepository;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
@@ -34,6 +36,7 @@ public class UserServiceImpl implements UserService {
                 throw new IllegalArgumentException("Not valid admin Id");
             }
         }
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         UsersEntity usersEntity = usersRepository.save(modelMapper.map(user, UsersEntity.class));
 
         String subject = "Registration Successful";
@@ -50,7 +53,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Users authenticateUser(SignInRequest signInRequest) throws Exception {
         UsersEntity byEmail = usersRepository.findByEmailAndIsDisabledFalse(signInRequest.getEmail());
-        if(byEmail.getPassword().equals(signInRequest.getPassword())){
+        if(passwordEncoder.matches(signInRequest.getPassword(), byEmail.getPassword())){
             return modelMapper.map(byEmail, Users.class);
         }else{
             throw new Exception("Invalid password");
@@ -99,7 +102,7 @@ public class UserServiceImpl implements UserService {
     public Users resetPassword(SignInRequest request) {
         try{
             UsersEntity usersEntity = usersRepository.findByEmail(request.getEmail()).orElseThrow(() -> new Exception("Could not find"));
-            usersEntity.setPassword(request.getPassword());
+            usersEntity.setPassword(passwordEncoder.encode(request.getPassword()));
             UsersEntity saved = usersRepository.save(usersEntity);
             return modelMapper.map(saved, Users.class);
         }catch (Exception e){
@@ -121,6 +124,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public Users updateUser(Users user) {
         try{
+            if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+                user.setPassword(passwordEncoder.encode(user.getPassword()));
+            }
             UsersEntity usersEntity = usersRepository.save(modelMapper.map(user, UsersEntity.class));
             return modelMapper.map(usersEntity, Users.class);
         }catch (Exception e){
@@ -134,7 +140,7 @@ public class UserServiceImpl implements UserService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            helper.setFrom(SENDER_EMAIL);
+            helper.setFrom(senderEmail);
             helper.setTo(toEmail);
             helper.setSubject(subject);
             helper.setText(body, true);

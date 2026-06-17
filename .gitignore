@@ -1,9 +1,11 @@
-
+HELP.md
+target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
 
 ### IntelliJ IDEA ###
+.idea/
 .idea/modules.xml
 .idea/jarRepositories.xml
 .idea/compiler.xml
@@ -32,9 +34,16 @@ build/
 !**/src/test/**/build/
 
 ### VS Code ###
+.vscode/
 
 ### Mac OS ###
 .DS_Store
+
+### Environment ###
+.env
+.env.*
+
+### Misc ###
 temp_auto_push.bat
 temp_interactive_push.bat
-.gitignore
+branch_structure.json
